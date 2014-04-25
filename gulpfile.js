@@ -46,12 +46,8 @@ var test = {
       .pipe(clean());
   },
 
-  // Watch specs for changes and run tests on change
-  watch: function() {
-    return test.compile().pipe(test.go('run'));
-  },
-
-  // Run the tests once
+  // Run the tests.
+  // This is also called from 'watch' after a spec or coffeescript file changes
   run: function() {
     test.compile().on('end', function() {
       test.go('run').on('end', function() {
@@ -68,13 +64,14 @@ var test = {
       .pipe(karma({
         configFile: 'karma.conf.js',
         action: action
-      }));
+      }))
+      .on('error', console.log);
   }
 };
 
 function watch() {
   gulp.watch(paths.sass + '**', ['css']);
-  gulp.watch(paths.coffee + '**', ['js', 'test-watch']);
+  gulp.watch(paths.coffee + '**', ['coffee', 'test-watch']);
   gulp.watch(paths.spec + '**/*Spec.coffee', ['test-watch']);
 }
 
