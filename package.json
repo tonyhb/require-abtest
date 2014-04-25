@@ -1,0 +1,43 @@
+{
+  "name": "require-abtest",
+  "version": "0.0.0",
+  "description": "Simple split testing for RequireJS",
+  "main": "js/require-abtest.js",
+  "dependencies": {
+    "requirejs": "~2.1.11"
+  },
+  "devDependencies": {
+    "coffee-script": "1.7.1",
+    "karma": "0.12.10",
+    "gulp": "3.6.2",
+    "gulp-coffee": "1.4.2",
+    "gulp-karma": "0.0.4",
+    "karma-jasmine": "~0.2.2",
+    "karma-requirejs": "~0.2.1",
+    "karma-phantomjs-launcher": "~0.1.4",
+    "gulp-clean": "~0.2.4",
+    "gulp-rename": "~1.2.0"
+  },
+  "scripts": {
+    "test": "gulp test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/tonyhb/require-abtest.git"
+  },
+  "keywords": [
+    "testing",
+    "split",
+    "testing",
+    "a/b",
+    "testing",
+    "multivariate",
+    "testing"
+  ],
+  "author": "Tony Holdstock-Brown",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/tonyhb/require-abtest/issues"
+  },
+  "homepage": "https://github.com/tonyhb/require-abtest"
+}
