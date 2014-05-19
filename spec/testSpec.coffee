@@ -1,6 +1,7 @@
-define ['test'], (test) ->
+define ['test', 'spec/data/ab-tests'], (test, abtests) ->
 
-  describe "KarmaJS", ->
+  describe "require-abtest", ->
 
-    it "must run tests OK", ->
-      expect(true).toEqual true
+    it "must load tests from an external file", ->
+      expect(test.tests).toEqual abtests
+
