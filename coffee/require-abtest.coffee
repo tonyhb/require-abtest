@@ -5,7 +5,7 @@ define (require) ->
     tests: tests,
 
     load: (name, req, onload, config) ->
-      file = @getFileNameFromPercentile(@tests[name])
+      file = @getFile(name)
       suffixed = name + '.' + file
       req [suffixed], (value) ->
         onload(value)
@@ -18,8 +18,10 @@ define (require) ->
     getPercentile: ->
       Math.floor(Math.random() * 99)
 
-    # Randomly select a file to load from a list of potential files
-    getFileNameFromPercentile: (files) ->
+    # Randomly select a file to load for a specific test
+    getFile: (testName) ->
+      files = @tests[testName].variations
+
       percentile = @getPercentile()
       currentPercentile = 0
 

@@ -5,7 +5,7 @@ define(function(require) {
     tests: tests,
     load: function(name, req, onload, config) {
       var file, suffixed;
-      file = this.getFileNameFromPercentile(this.tests[name]);
+      file = this.getFile(name);
       suffixed = name + '.' + file;
       return req([suffixed], function(value) {
         return onload(value);
@@ -14,8 +14,9 @@ define(function(require) {
     getPercentile: function() {
       return Math.floor(Math.random() * 99);
     },
-    getFileNameFromPercentile: function(files) {
-      var currentPercentile, name, percentile, split;
+    getFile: function(testName) {
+      var currentPercentile, files, name, percentile, split;
+      files = this.tests[testName].variations;
       percentile = this.getPercentile();
       currentPercentile = 0;
       for (name in files) {
