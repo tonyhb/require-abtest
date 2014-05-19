@@ -58,7 +58,6 @@ var test = {
 
   // Test run/watch helper: either runs or launches a single test
   go: function(action) {
-    test.compile();
     var files = ["undefined.js"];
     return gulp.src(files)
       .pipe(karma({
@@ -71,8 +70,8 @@ var test = {
 
 function watch() {
   gulp.watch(paths.sass + '**', ['css']);
-  gulp.watch(paths.coffee + '**', ['coffee', 'test-watch']);
-  gulp.watch(paths.spec + '**/*Spec.coffee', ['test-watch']);
+  gulp.watch(paths.coffee + '**', ['coffee', 'test-run']);
+  gulp.watch(paths.spec + '**/*Spec.coffee', ['test-run']);
 }
 
 
