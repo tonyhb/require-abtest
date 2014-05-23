@@ -6,7 +6,7 @@ define ['test', 'spec/data/ab-tests'], (test, abtests) ->
       expect(runningTests).toEqual abtests
 
   describe "test", ->
-    newTestSettings = 
+    newTestSettings =
       name: 'new test'
       description: 'an optional description for a manually created A/B test'
       variations:
@@ -56,8 +56,21 @@ define ['test', 'spec/data/ab-tests'], (test, abtests) ->
       expect(test.cohorts()).toEqual {}
 
     it "must return an object when a user is in a cohort", ->
+      test.persist 'new test', 'variation a'
+      expect(test.cohorts()).toEqual
+        'new test': 'variation a'
 
   describe "cohort", ->
     it "must throw an error with an incorrect test name", ->
+      expect( -> test.cohort('foo'))
+        .toThrow new Error("Test 'foo' is undefined")
+
     it "must assign a cohort to users without variations", ->
+      test.reset()
+      variation = test.cohort('new test')
+      expect(variation).toBeDefined()
+      expect(variation.constructor).toBe String
+      expect(test.cohorts()['new test']).toBeDefined
+
     it "must return a string when a user is in a cohort", ->
+      expect(test.cohort('new test')).toEqual test.cohorts()['new test']
