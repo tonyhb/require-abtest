@@ -91,7 +91,6 @@ define (require) ->
           return variation
 
     persist: (testName, variation) ->
-      # @TODO: Track the cohort in a cookie
       userCohorts[testName] = variation
       @cookie.set()
 
@@ -109,8 +108,6 @@ define (require) ->
       throw new Error "Unable to assign  a variation for the test: " + testName
 
     load: (name, req, onload, config) ->
-      # @TODO: Check to see if the user is in a cohort
-
       file = @getFile(name)
 
       suffixed = file
