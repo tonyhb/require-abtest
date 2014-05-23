@@ -1,5 +1,7 @@
 define (require) ->
 
+  COOKIE_KEY = 'rjs-ab'
+
   # This stores which variation we show for each test for the current user.
   # It is defined locally so it can only be accessed via API calls
   userCohorts = {}
@@ -7,17 +9,6 @@ define (require) ->
   # A list of test names, which contain a list of variations to visitor
   # percentages
   tests = {}
-
-  # Require 'module' to load config options for the test plugin
-  module = require 'module'
-  # Get the test config options. This can either be a filename or an object of
-  # tests; if it's a filename we load the file via RequireJS.
-  config = module.config()
-  if typeof config.tests is "object"
-    tests = config.tests
-  else if typeof config.tests is "string"
-    # Require in the test file
-    tests = require config.tests
 
   abtest =
     version: '0.1'
@@ -52,7 +43,7 @@ define (require) ->
 
     reset: ->
       userCohorts = {}
-      # @TODO: Clear the user's cookie
+      @cookie.set()
 
     # Create a new test
     # =================
@@ -71,7 +62,6 @@ define (require) ->
       tests[settings.name] =
         description: settings.description
         variations: settings.variations
-      
 
     # Cohort splitting
     # ================
@@ -103,18 +93,12 @@ define (require) ->
     persist: (testName, variation) ->
       # @TODO: Track the cohort in a cookie
       userCohorts[testName] = variation
-
-    # Persistence
-    # ===========
-
-    # Load the user's cohort via a cookie
-
-    # Track the user's cohort via a cookie
+      @cookie.set()
 
     # RequireJS API
     # =============
 
-    # Return a filename from a variation for a specific test
+    # Return a filename from a variation for a specific testl
     # If the user is in a cohort already use their previous file, otherwise
     # randomly select a new file from all variations and assign the user to that
     # cohort.
@@ -132,5 +116,40 @@ define (require) ->
       suffixed = file
       req [suffixed], (value) ->
         onload(value)
+
+    # Cookie manipulation
+    # ===================
+
+    cookie:
+      get: ->
+        for cookieFragment in document.cookie.split ';'
+          # Remove leading slashes
+          cookieFragment.replace /^\s+/, ''
+          continue if cookieFragment.indexOf(COOKIE_KEY) isnt 0
+
+          cohorts = cookieFragment.substring COOKIE_KEY.length + 1
+          return JSON.parse decodeURIComponent cohorts
+
+      set: ->
+        date = new Date
+        date.setTime(date.getTime() + (365 * 24 * 60 * 60 * 1000))
+        expires = "; expires=" + date.toGMTString()
+
+        value = encodeURIComponent JSON.stringify(userCohorts)
+        document.cookie = COOKIE_KEY + "=" + value + expires + "; path=/"
+
+
+  # Require 'module' to load config options for the test plugin
+  module = require 'module'
+  # Get the test config options. This can either be a filename or an object of
+  # tests; if it's a filename we load the file via RequireJS.
+  config = module.config()
+  if typeof config.tests is "object"
+    tests = config.tests
+  else if typeof config.tests is "string"
+    # Require in the test file
+    tests = require config.tests
+
+  userCohorts = abtest.cookie.get() || {}
 
   return abtest

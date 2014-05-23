@@ -1,14 +1,8 @@
 define(function(require) {
-  var abtest, config, module, tests, userCohorts;
+  var COOKIE_KEY, abtest, config, module, tests, userCohorts;
+  COOKIE_KEY = 'rjs-ab';
   userCohorts = {};
   tests = {};
-  module = require('module');
-  config = module.config();
-  if (typeof config.tests === "object") {
-    tests = config.tests;
-  } else if (typeof config.tests === "string") {
-    tests = require(config.tests);
-  }
   abtest = {
     version: '0.1',
     runningTests: tests,
@@ -16,7 +10,13 @@ define(function(require) {
       return userCohorts;
     },
     cohort: function(testName) {
-      return this.cohorts()[testName];
+      if (this.tests()[testName] === void 0) {
+        throw new Error("Test '" + testName + "' is undefined");
+      }
+      if (userCohorts[testName] !== void 0) {
+        return userCohorts[testName];
+      }
+      return this.assignCohort(testName);
     },
     tests: function() {
       return tests;
@@ -36,7 +36,8 @@ define(function(require) {
       }
     },
     reset: function() {
-      return userCohorts = {};
+      userCohorts = {};
+      return this.cookie.set();
     },
     test: function(settings) {
       var count, i;
@@ -78,7 +79,8 @@ define(function(require) {
       }
     },
     persist: function(testName, variation) {
-      return userCohorts[testName] = variation;
+      userCohorts[testName] = variation;
+      return this.cookie.set();
     },
     getFile: function(testName) {
       if (this.cohort(testName)) {
@@ -94,7 +96,38 @@ define(function(require) {
       return req([suffixed], function(value) {
         return onload(value);
       });
+    },
+    cookie: {
+      get: function() {
+        var cohorts, cookieFragment, _i, _len, _ref;
+        _ref = document.cookie.split(';');
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          cookieFragment = _ref[_i];
+          cookieFragment.replace(/^\s+/, '');
+          if (cookieFragment.indexOf(COOKIE_KEY) !== 0) {
+            continue;
+          }
+          cohorts = cookieFragment.substring(COOKIE_KEY.length + 1);
+          return JSON.parse(decodeURIComponent(cohorts));
+        }
+      },
+      set: function() {
+        var date, expires, value;
+        date = new Date;
+        date.setTime(date.getTime() + (365 * 24 * 60 * 60 * 1000));
+        expires = "; expires=" + date.toGMTString();
+        value = encodeURIComponent(JSON.stringify(userCohorts));
+        return document.cookie = COOKIE_KEY + "=" + value + expires + "; path=/";
+      }
     }
   };
+  module = require('module');
+  config = module.config();
+  if (typeof config.tests === "object") {
+    tests = config.tests;
+  } else if (typeof config.tests === "string") {
+    tests = require(config.tests);
+  }
+  userCohorts = abtest.cookie.get() || {};
   return abtest;
 });
