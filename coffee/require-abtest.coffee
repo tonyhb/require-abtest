@@ -27,8 +27,16 @@ define (require) ->
       # @TODO: Clone this so that this can't be modified
       return userCohorts
 
+    # Get the cohort the user is in for the current test. If the user is not in
+    # a cohort, assign one and return the variation name.
     cohort: (testName) ->
-      return @cohorts()[testName]
+      # Fail hard if the test doesn't exist
+      if @tests()[testName] is undefined
+        throw new Error("Test '" + testName + "' is undefined")
+
+      return userCohorts[testName] if userCohorts[testName] isnt undefined
+      # If the user has no cohort assign one
+      return @assignCohort(testName)
 
     tests: ->
       # @TODO: Clone this so that this can't be modified
@@ -57,7 +65,6 @@ define (require) ->
 
       count = 0
       count++ for i of settings.variations if settings.variations
-
       if ! settings.variations || count < 2
         throw new Error("Tests must have at least two variations defined")
 
