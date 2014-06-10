@@ -1,12 +1,8 @@
-define(['tests', 'require'], function(tests, require) {
-  var COOKIE_KEY, abtest, buildMap, document, userCohorts;
+define(function(require) {
+  var COOKIE_KEY, abtest, config, module, tests, userCohorts;
   COOKIE_KEY = 'rjs-ab';
   userCohorts = {};
-  tests = tests || {};
-  document = document || {
-    cookie: ''
-  };
-  buildMap = {};
+  tests = {};
   abtest = {
     version: '0.1',
     runningTests: tests,
@@ -94,46 +90,12 @@ define(['tests', 'require'], function(tests, require) {
       throw new Error("Unable to assign  a variation for the test: " + testName);
     },
     load: function(name, req, onload, config) {
-      var file;
-      if (config.isBuild) {
-        this.loadAll.apply(this, arguments);
-      }
+      var file, suffixed;
       file = this.getFile(name);
-      return req([file], function(module) {
-        return onload(module);
+      suffixed = file;
+      return req([suffixed], function(value) {
+        return onload(value);
       });
-    },
-    loadAll: function(testName, req, onload, config) {
-      var split, variation, variations, _results;
-      variations = this.variations(testName);
-      _results = [];
-      for (variation in variations) {
-        split = variations[variation];
-        _results.push(require([variation], (function(_this) {
-          return function(module) {
-            return _this.finishLoad(testName, variation, module, onload, config);
-          };
-        })(this)));
-      }
-      return _results;
-    },
-    finishLoad: function(testName, variation, module, onload, config) {
-      buildMap[testName] = buildMap[testName] || {};
-      buildMap[testName][variation] = module;
-      return onload(module);
-    },
-    write: function(pluginName, moduleName, write, config) {
-      var module, variation, variationDefinitions, _results;
-      if (!buildMap.hasOwnProperty(moduleName)) {
-        return;
-      }
-      variationDefinitions = buildMap[moduleName];
-      _results = [];
-      for (module in variationDefinitions) {
-        variation = variationDefinitions[module];
-        _results.push(write.asModule(variation, module));
-      }
-      return _results;
     },
     cookie: {
       get: function() {
@@ -151,9 +113,6 @@ define(['tests', 'require'], function(tests, require) {
       },
       set: function() {
         var date, expires, value;
-        if (!document) {
-          return {};
-        }
         date = new Date;
         date.setTime(date.getTime() + (365 * 24 * 60 * 60 * 1000));
         expires = "; expires=" + date.toGMTString();
@@ -162,6 +121,13 @@ define(['tests', 'require'], function(tests, require) {
       }
     }
   };
+  module = require('module');
+  config = module.config();
+  if (typeof config.tests === "object") {
+    tests = config.tests;
+  } else if (typeof config.tests === "string") {
+    tests = require(config.tests);
+  }
   userCohorts = abtest.cookie.get() || {};
   return abtest;
 });

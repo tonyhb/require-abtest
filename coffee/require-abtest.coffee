@@ -1,4 +1,4 @@
-define (require) ->
+define ['tests', 'require'], (tests, require) ->
 
   COOKIE_KEY = 'rjs-ab'
 
@@ -8,7 +8,25 @@ define (require) ->
 
   # A list of test names, which contain a list of variations to visitor
   # percentages
-  tests = {}
+  tests = tests || {}
+
+  # During optimization document isn't defined and r.js throws an error... even
+  # if we don't use document.cookie for cohort setting. Fix that issue.
+  document = document || {
+    cookie: ''
+  }
+
+  # Stores a list of all tests and their variations to their module definitions
+  # for r.js optimisation. This is only used for opimisation, enabling us to
+  # write definitions properly in `write()`
+  #
+  # buildMap = {
+  #   'test name': {
+  #     'a': module
+  #     'b': module
+  #   }
+  # }
+  buildMap = {}
 
   abtest =
     version: '0.1'
@@ -108,11 +126,36 @@ define (require) ->
       throw new Error "Unable to assign  a variation for the test: " + testName
 
     load: (name, req, onload, config) ->
-      file = @getFile(name)
+      @loadAll.apply @, arguments if config.isBuild
 
-      suffixed = file
-      req [suffixed], (value) ->
-        onload(value)
+      file = @getFile(name)
+      req [file], (module) ->
+        onload(module)
+
+    # Optimisation
+    # ============
+
+    # Load all variations for optimisation
+    loadAll: (testName, req, onload, config) ->
+      variations = @variations(testName)
+
+      for variation, split of variations
+        require [variation], (module) =>
+          @finishLoad testName, variation, module, onload, config
+
+    finishLoad: (testName, variation, module, onload, config) ->
+      buildMap[testName] = buildMap[testName] || {}
+      buildMap[testName][variation] = module
+      onload(module)
+
+    # Used by the r.js optimiser to write definitions to the optimised file.
+    write: (pluginName, moduleName, write, config) ->
+      return unless buildMap.hasOwnProperty(moduleName)
+
+      variationDefinitions = buildMap[moduleName]
+      for module, variation of variationDefinitions
+        write.asModule(variation, module)
+
 
     # Cookie manipulation
     # ===================
@@ -128,6 +171,7 @@ define (require) ->
           return JSON.parse decodeURIComponent cohorts
 
       set: ->
+        return {} unless document
         date = new Date
         date.setTime(date.getTime() + (365 * 24 * 60 * 60 * 1000))
         expires = "; expires=" + date.toGMTString()
@@ -135,18 +179,7 @@ define (require) ->
         value = encodeURIComponent JSON.stringify(userCohorts)
         document.cookie = COOKIE_KEY + "=" + value + expires + "; path=/"
 
-
-  # Require 'module' to load config options for the test plugin
-  module = require 'module'
-  # Get the test config options. This can either be a filename or an object of
-  # tests; if it's a filename we load the file via RequireJS.
-  config = module.config()
-  if typeof config.tests is "object"
-    tests = config.tests
-  else if typeof config.tests is "string"
-    # Require in the test file
-    tests = require config.tests
-
+  # Get all user cohorts after defining abtest
   userCohorts = abtest.cookie.get() || {}
 
   return abtest

@@ -1,5 +1,5 @@
 define(function() {
   return {
-    page: 'b'
+    name: 'b'
   };
 });
