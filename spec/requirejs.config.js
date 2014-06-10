@@ -11,15 +11,12 @@ require.config({
   deps: tests,
   baseUrl: '/base/',
   callback: window.__karma__.start,
+  map: {
+    '*': {
+      'test-definitions': 'spec/data/ab-tests'
+    }
+  },
   paths: {
     test: 'js/require-abtest'
-  },
-  config: {
-    test: {
-      settings: {
-        tracking: 'spec/data/tracking'
-      },
-      tests: 'spec/data/ab-tests'
-    }
   }
 });

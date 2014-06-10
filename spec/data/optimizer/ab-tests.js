@@ -1,4 +1,4 @@
-define(['module'], function(module) {
+define(function() {
   return {
     page: {
       description: 'Page test',

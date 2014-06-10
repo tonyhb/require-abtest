@@ -1,4 +1,4 @@
-define(['tests', 'require'], function(tests, require) {
+define(['test-definitions'], function(tests, require) {
   var COOKIE_KEY, abtest, buildMap, document, userCohorts;
   COOKIE_KEY = 'rjs-ab';
   userCohorts = {};
@@ -109,7 +109,7 @@ define(['tests', 'require'], function(tests, require) {
       _results = [];
       for (variation in variations) {
         split = variations[variation];
-        _results.push(require([variation], (function(_this) {
+        _results.push(req([variation], (function(_this) {
           return function(module) {
             return _this.finishLoad(testName, variation, module, onload, config);
           };
@@ -121,19 +121,6 @@ define(['tests', 'require'], function(tests, require) {
       buildMap[testName] = buildMap[testName] || {};
       buildMap[testName][variation] = module;
       return onload(module);
-    },
-    write: function(pluginName, moduleName, write, config) {
-      var module, variation, variationDefinitions, _results;
-      if (!buildMap.hasOwnProperty(moduleName)) {
-        return;
-      }
-      variationDefinitions = buildMap[moduleName];
-      _results = [];
-      for (module in variationDefinitions) {
-        variation = variationDefinitions[module];
-        _results.push(write.asModule(variation, module));
-      }
-      return _results;
     },
     cookie: {
       get: function() {

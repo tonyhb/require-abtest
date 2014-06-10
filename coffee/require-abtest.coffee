@@ -1,4 +1,4 @@
-define ['tests', 'require'], (tests, require) ->
+define ['test-definitions'], (tests, require) ->
 
   COOKIE_KEY = 'rjs-ab'
 
@@ -140,21 +140,13 @@ define ['tests', 'require'], (tests, require) ->
       variations = @variations(testName)
 
       for variation, split of variations
-        require [variation], (module) =>
+        req [variation], (module) =>
           @finishLoad testName, variation, module, onload, config
 
     finishLoad: (testName, variation, module, onload, config) ->
       buildMap[testName] = buildMap[testName] || {}
       buildMap[testName][variation] = module
       onload(module)
-
-    # Used by the r.js optimiser to write definitions to the optimised file.
-    write: (pluginName, moduleName, write, config) ->
-      return unless buildMap.hasOwnProperty(moduleName)
-
-      variationDefinitions = buildMap[moduleName]
-      for module, variation of variationDefinitions
-        write.asModule(variation, module)
 
 
     # Cookie manipulation
@@ -178,7 +170,7 @@ define ['tests', 'require'], (tests, require) ->
 
         value = encodeURIComponent JSON.stringify(userCohorts)
         document.cookie = COOKIE_KEY + "=" + value + expires + "; path=/"
-
+ 
   # Get all user cohorts after defining abtest
   userCohorts = abtest.cookie.get() || {}
 

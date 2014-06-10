@@ -1,13 +1,7 @@
 require.config({
-  deps: ['tests', 'main'],
+  deps: ['test-definitions', 'main'],
   paths: {
     test: '../../../js/require-abtest',
-  },
-  config: {
-    test: {
-      settings: {
-        tracking: 'tracking'
-      },
-    }
+    'test-definitions': 'ab-tests'
   }
 });
