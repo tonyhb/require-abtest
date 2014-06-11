@@ -1,14 +1,14 @@
 define(['test-definitions', 'test-tracking'], function(tests, tracking, require) {
-  var COOKIE_KEY, abtest, buildMap, document, userCohorts;
+  var COOKIE_KEY, abtest, buildMap, doc, userCohorts;
   COOKIE_KEY = 'rjs-ab';
   userCohorts = {};
   tests = tests || {};
-  document = document || {
+  doc = document || {
     cookie: ''
   };
   buildMap = {};
   abtest = {
-    version: '0.1',
+    version: '0.1.1',
     runningTests: tests,
     cohorts: function() {
       return userCohorts;
@@ -126,10 +126,13 @@ define(['test-definitions', 'test-tracking'], function(tests, tracking, require)
     cookie: {
       get: function() {
         var cohorts, cookieFragment, _i, _len, _ref;
-        _ref = document.cookie.split(';');
+        if (!doc) {
+          return;
+        }
+        _ref = doc.cookie.split(';');
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           cookieFragment = _ref[_i];
-          cookieFragment.replace(/^\s+/, '');
+          cookieFragment = cookieFragment.replace(/^\s+/, '');
           if (cookieFragment.indexOf(COOKIE_KEY) !== 0) {
             continue;
           }
@@ -139,14 +142,14 @@ define(['test-definitions', 'test-tracking'], function(tests, tracking, require)
       },
       set: function() {
         var date, expires, value;
-        if (!document) {
+        if (!doc) {
           return {};
         }
         date = new Date;
         date.setTime(date.getTime() + (365 * 24 * 60 * 60 * 1000));
         expires = "; expires=" + date.toGMTString();
         value = encodeURIComponent(JSON.stringify(userCohorts));
-        return document.cookie = COOKIE_KEY + "=" + value + expires + "; path=/";
+        return doc.cookie = COOKIE_KEY + "=" + value + expires + "; path=/";
       }
     }
   };

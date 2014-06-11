@@ -12,7 +12,7 @@ define ['test-definitions', 'test-tracking'], (tests, tracking, require) ->
 
   # During optimization document isn't defined and r.js throws an error... even
   # if we don't use document.cookie for cohort setting. Fix that issue.
-  document = document || {
+  doc = document || {
     cookie: ''
   }
 
@@ -29,7 +29,7 @@ define ['test-definitions', 'test-tracking'], (tests, tracking, require) ->
   buildMap = {}
 
   abtest =
-    version: '0.1'
+    version: '0.1.1'
     runningTests: tests,
 
     cohorts: ->
@@ -156,22 +156,23 @@ define ['test-definitions', 'test-tracking'], (tests, tracking, require) ->
 
     cookie:
       get: ->
-        for cookieFragment in document.cookie.split ';'
+        return unless doc
+        for cookieFragment in doc.cookie.split ';'
           # Remove leading slashes
-          cookieFragment.replace /^\s+/, ''
+          cookieFragment = cookieFragment.replace /^\s+/, ''
           continue if cookieFragment.indexOf(COOKIE_KEY) isnt 0
 
           cohorts = cookieFragment.substring COOKIE_KEY.length + 1
           return JSON.parse decodeURIComponent cohorts
 
       set: ->
-        return {} unless document
+        return {} unless doc
         date = new Date
         date.setTime(date.getTime() + (365 * 24 * 60 * 60 * 1000))
         expires = "; expires=" + date.toGMTString()
 
         value = encodeURIComponent JSON.stringify(userCohorts)
-        document.cookie = COOKIE_KEY + "=" + value + expires + "; path=/"
+        doc.cookie = COOKIE_KEY + "=" + value + expires + "; path=/"
  
   # Get all user cohorts after defining abtest
   userCohorts = abtest.cookie.get() || {}
