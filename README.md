@@ -1,3 +1,5 @@
+![rjs](http://requirejs.org/i/logo.png)
+
 # RequireJS A/B Testing
 
 Simple split testing for RequireJS.
