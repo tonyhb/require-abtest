@@ -1,4 +1,4 @@
-define ['test-definitions'], (tests, require) ->
+define ['test-definitions', 'test-tracking'], (tests, tracking, require) ->
 
   COOKIE_KEY = 'rjs-ab'
 
@@ -66,7 +66,7 @@ define ['test-definitions'], (tests, require) ->
     # Create a new test
     # =================
 
-    test: (settings) ->
+    createTest: (settings) ->
       throw new Error("Tests must have a name defined") unless settings.name
 
       if tests[settings.name] isnt undefined
@@ -77,9 +77,8 @@ define ['test-definitions'], (tests, require) ->
       if ! settings.variations || count < 2
         throw new Error("Tests must have at least two variations defined")
 
-      tests[settings.name] =
-        description: settings.description
-        variations: settings.variations
+      name = settings.name
+      tests[name] = settings
 
     # Cohort splitting
     # ================
@@ -101,15 +100,18 @@ define ['test-definitions'], (tests, require) ->
       currentPercentile = 0
 
       variations = @variations(testName)
+      index = -1
       for variation, split of variations
+        index++
         currentPercentile += split
 
         if percentile < currentPercentile
-          @persist(testName, variation)
+          @persist(testName, variation, index)
           return variation
 
-    persist: (testName, variation) ->
+    persist: (testName, variation, index) ->
       userCohorts[testName] = variation
+      tracking.track(testName, variation, index, tests[testName])
       @cookie.set()
 
     # RequireJS API

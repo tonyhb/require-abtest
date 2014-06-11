@@ -14,30 +14,26 @@ define ['test', 'spec/data/ab-tests'], (test, abtests) ->
         'variation b': 40
 
     it "creates a new test manually", ->
-      test.test(newTestSettings)
+      test.createTest(newTestSettings)
 
       runningTests = test.tests()
       expect(runningTests['new test']).toBeDefined()
-      expect(runningTests['new test']).toEqual
-        description: 'an optional description for a manually created A/B test'
-        variations:
-          'variation a': 60
-          'variation b': 40
+      expect(runningTests['new test']).toEqual newTestSettings
 
     it "throws an error if you create a test with an existing name", ->
-      expect( -> test.test(newTestSettings))
+      expect( -> test.createTest(newTestSettings))
         .toThrow new Error("Test 'new test' already exists")
 
     it "throws an error if you create a test without a name", ->
-      expect( -> test.test({variations: {}}))
+      expect( -> test.createTest({variations: {}}))
         .toThrow new Error("Tests must have a name defined")
 
     it "throws an error if you create a test without variations", ->
-      expect( -> test.test({name: 'Test'}))
+      expect( -> test.createTest({name: 'Test'}))
         .toThrow(new Error("Tests must have at least two variations defined"))
 
     it "throws an error if you create a test with one variation", ->
-      expect( -> test.test({
+      expect( -> test.createTest({
         name: 'Test'
         variations:
           'variation a': 100

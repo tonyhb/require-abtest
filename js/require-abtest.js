@@ -1,4 +1,4 @@
-define(['test-definitions'], function(tests, require) {
+define(['test-definitions', 'test-tracking'], function(tests, tracking, require) {
   var COOKIE_KEY, abtest, buildMap, document, userCohorts;
   COOKIE_KEY = 'rjs-ab';
   userCohorts = {};
@@ -43,8 +43,8 @@ define(['test-definitions'], function(tests, require) {
       userCohorts = {};
       return this.cookie.set();
     },
-    test: function(settings) {
-      var count, i;
+    createTest: function(settings) {
+      var count, i, name;
       if (!settings.name) {
         throw new Error("Tests must have a name defined");
       }
@@ -60,30 +60,31 @@ define(['test-definitions'], function(tests, require) {
       if (!settings.variations || count < 2) {
         throw new Error("Tests must have at least two variations defined");
       }
-      return tests[settings.name] = {
-        description: settings.description,
-        variations: settings.variations
-      };
+      name = settings.name;
+      return tests[name] = settings;
     },
     getPercentile: function() {
       return Math.floor(Math.random() * 99);
     },
     assignCohort: function(testName) {
-      var currentPercentile, percentile, split, variation, variations;
+      var currentPercentile, index, percentile, split, variation, variations;
       percentile = this.getPercentile();
       currentPercentile = 0;
       variations = this.variations(testName);
+      index = -1;
       for (variation in variations) {
         split = variations[variation];
+        index++;
         currentPercentile += split;
         if (percentile < currentPercentile) {
-          this.persist(testName, variation);
+          this.persist(testName, variation, index);
           return variation;
         }
       }
     },
-    persist: function(testName, variation) {
+    persist: function(testName, variation, index) {
       userCohorts[testName] = variation;
+      tracking.track(testName, variation, index, tests[testName]);
       return this.cookie.set();
     },
     getFile: function(testName) {

@@ -2,7 +2,7 @@ define ['test'], (test) ->
 
   describe "the cookie helper", -> 
 
-    test.test
+    test.createTest
       name: "cookie test"
       variations:
         a: 50

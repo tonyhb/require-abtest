@@ -13,7 +13,8 @@ require.config({
   callback: window.__karma__.start,
   map: {
     '*': {
-      'test-definitions': 'spec/data/ab-tests'
+      'test-definitions': 'spec/data/ab-tests',
+      'test-tracking': 'js/test-tracking'
     }
   },
   paths: {
